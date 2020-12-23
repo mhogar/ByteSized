@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"image"
 	"image/color"
 	png "image/png"
@@ -11,17 +12,64 @@ import (
 	_ "image/jpeg"
 )
 
-const numBits = 8
-
 func main() {
-	//createWatermark()
-	extractWatermark()
+	// define flags
+	extractMode := flag.Bool("e", false, "foo")
+	baseImgFilename := flag.String("base", "", "foo")
+	watermarkImgFilename := flag.String("watermark", "", "foo")
+	outputImgFilename := flag.String("output", "", "foo")
+	numBits := flag.Int("bits", 8, "foo")
+
+	flag.Parse()
+
+	//-- validate parameters --
+	if *baseImgFilename == "" {
+		println("Base Image Filename is required.")
+		return
+	}
+
+	if *outputImgFilename == "" {
+		println("Output Image Filename is required.")
+		return
+	}
+
+	if *numBits < 1 || *numBits > 16 {
+		println("Bits must be between 1 and 16.")
+		return
+	}
+
+	// choose mode based on flag
+	if *extractMode {
+
+		// print configuration
+		println("Base Image:", *baseImgFilename)
+		println("Output Image:", *outputImgFilename)
+		println("Number of bits:", *numBits)
+		println("Extracting watermark...")
+
+		extractWatermark(*baseImgFilename, *outputImgFilename, *numBits)
+	} else {
+		// validate mode specific parameters
+		if *watermarkImgFilename == "" {
+			println("Watermark Image Filename is required.")
+			return
+		}
+
+		// print configuration
+		println("Base Image:", *baseImgFilename)
+		println("Watermark Image:", *watermarkImgFilename)
+		println("Output Image:", *outputImgFilename)
+		println("Number of bits:", *numBits)
+		println("Creating watermark...")
+
+		createWatermark(*baseImgFilename, *watermarkImgFilename, *outputImgFilename, *numBits)
+	}
 }
 
-func createWatermark() {
+func createWatermark(baseImgFilename, watermarkImgFilename, outputImgFilename string, numBits int) {
 	// decode the images
-	baseImg := decodeImage("imgs/landscape.jpeg")
-	watermarkImg := decodeImage("imgs/github_logo.png")
+	baseImg := decodeImage(baseImgFilename)
+	watermarkImg := decodeImage(watermarkImgFilename)
 
 	// get the bounds
 	baseBounds := baseImg.Bounds()
@@ -54,9 +102,9 @@ func createWatermark() {
 
 			// create a new color by combining the two values
 			c := color.RGBA64{
-				R: uint16(r1) | uint16(r2)>>(16-numBits),
-				G: uint16(g1) | uint16(g2)>>(16-numBits),
-				B: uint16(b1) | uint16(b2)>>(16-numBits),
+				R: combineColors(r1, r2, numBits),
+				G: combineColors(g1, g2, numBits),
+				B: combineColors(b1, b2, numBits),
 				A: uint16(a1),
 			}
 
@@ -66,12 +114,19 @@ func createWatermark() {
 	}
 
 	// save the image
-	saveImage("test.png", outputImg)
+	saveImage(outputImgFilename, outputImg)
 }
 
-func extractWatermark() {
+func combineColors(c1, c2 uint32, numBits int) uint16 {
+	b := uint16(1<<16 - 1)
+	offset := 16 - numBits
+
+	return (uint16(c1) | b>>offset) & ((uint16(c2) >> offset) | b<<numBits)
+}
+
+func extractWatermark(baseImgFilename, outputImgFilename string, numBits int) {
 	// decode the image and get the bounds
-	baseImg := decodeImage("test.png")
+	baseImg := decodeImage(baseImgFilename)
 	baseBounds := baseImg.Bounds()
 
 	// create the output image with the same size as the base image
@@ -85,9 +140,9 @@ func extractWatermark() {
 
 			// create the color using the base image
 			c := color.RGBA64{
-				R: (uint16(r) & ((1 << numBits) - 1)) << numBits,
-				G: (uint16(g) & ((1 << numBits) - 1)) << numBits,
-				B: (uint16(b) & ((1 << numBits) - 1)) << numBits,
+				R: extractColor(r, numBits),
+				G: extractColor(g, numBits),
+				B: extractColor(b, numBits),
 				A: uint16(a),
 			}
 
@@ -97,7 +152,11 @@ func extractWatermark() {
 	}
 
 	// save the image
-	saveImage("extracted.png", outputImg)
+	saveImage(outputImgFilename, outputImg)
+}
+
+func extractColor(c uint32, numBits int) uint16 {
+	return (uint16(c) & ((1 << numBits) - 1)) << numBits
 }
 
 func decodeImage(filename string) image.Image {
