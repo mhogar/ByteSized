@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	const numBits = 2
+	const numBits = 8
 
 	dest := decodeImage("imgs/landscape.jpeg")
 	src := decodeImage("imgs/github_logo.png")
@@ -23,15 +23,20 @@ func main() {
 
 	output := image.NewRGBA64(destBounds)
 
+	xOffset := calcOffset(destBounds.Max.X, destBounds.Min.X, srcBounds.Max.X, srcBounds.Min.X)
+	yOffset := calcOffset(destBounds.Max.Y, destBounds.Min.Y, srcBounds.Max.Y, srcBounds.Min.Y)
+
 	for y := destBounds.Min.Y; y < destBounds.Max.Y; y++ {
 		for x := destBounds.Min.X; x < destBounds.Max.X; x++ {
-			srcX := x + calcOffset(destBounds.Max.X, destBounds.Min.X, srcBounds.Max.X, srcBounds.Min.X)
+			srcX := x - xOffset
 			if srcX < srcBounds.Min.X || srcX >= srcBounds.Max.X {
+				output.Set(x, y, dest.At(x, y))
 				continue
 			}
 
-			srcY := y + calcOffset(destBounds.Max.Y, destBounds.Min.Y, srcBounds.Max.Y, srcBounds.Min.Y)
+			srcY := y - yOffset
 			if srcY < srcBounds.Min.Y || srcY >= srcBounds.Max.Y {
+				output.Set(x, y, dest.At(x, y))
 				continue
 			}
 
@@ -40,13 +45,11 @@ func main() {
 			r2, g2, b2, _ := src.At(srcX, srcY).RGBA()
 
 			c := color.RGBA64{
-				R: uint16(r1 & (r2 >> (16 - numBits))),
-				G: uint16(g1 & (g2 >> (16 - numBits))),
-				B: uint16(b1 & (b2 >> (16 - numBits))),
+				R: uint16(r1) | uint16(r2)>>(16-numBits),
+				G: uint16(g1) | uint16(g2)>>(16-numBits),
+				B: uint16(b1) | uint16(b2)>>(16-numBits),
 				A: uint16(a1),
 			}
-
-			print(c.R)
 
 			output.SetRGBA64(x, y, c)
 		}
