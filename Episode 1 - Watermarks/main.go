@@ -156,7 +156,7 @@ func extractWatermark(baseImgFilename, outputImgFilename string, numBits int) {
 }
 
 func extractColor(c uint32, numBits int) uint16 {
-	return (uint16(c) & ((1 << numBits) - 1)) << numBits
+	return uint16(c) << (16 - numBits)
 }
 
 func decodeImage(filename string) image.Image {
