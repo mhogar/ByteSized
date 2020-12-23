@@ -14,11 +14,11 @@ import (
 
 func main() {
 	// define flags
-	extractMode := flag.Bool("e", false, "Runs the application in extract mode.")
-	baseImgFilename := flag.String("base", "", "The filepath for the base image.")
-	watermarkImgFilename := flag.String("watermark", "", "The filepath for the watermark image.")
-	outputImgFilename := flag.String("output", "", "The filepath for the output image.")
-	numBits := flag.Int("bits", 8, "The number of bits to use for the watermark.")
+	extractMode := flag.Bool("e", false, "Runs the application in extract mode. If excluded, runs in create mode.")
+	baseImgFilename := flag.String("base", "", "The filepath for the base image. Required for all modes.")
+	watermarkImgFilename := flag.String("watermark", "", "The filepath for the watermark image. Required for create mode.")
+	outputImgFilename := flag.String("output", "", "The filepath for the output image. Required for all modes.")
+	numBits := flag.Int("bits", 8, "The number of bits to use for the watermark. Must be between 1 and 16.")
 
 	flag.Parse()
 
