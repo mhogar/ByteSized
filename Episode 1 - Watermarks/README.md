@@ -1,6 +1,6 @@
 # Episode 1 - Watermarks
 
-Video Link: [https://www.youtube.com/watch?v=TKq6ypmcnb8]()
+Video Link: [https://www.youtube.com/watch?v=TKq6ypmcnb8](https://www.youtube.com/watch?v=TKq6ypmcnb8)
 
 ### About
 
