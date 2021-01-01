@@ -1,2 +1,6 @@
+# Episode 1
 Episode 1 - Watermarks/imgs/*
 !Episode 1 - Watermarks/imgs/.keep
+
+Episode 1 - Watermarks/out/*
+!Episode 1 - Watermarks/out/.keep
